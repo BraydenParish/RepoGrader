@@ -1,8 +1,10 @@
 import ast
 import io
 import json
+import os
 import shutil
 import statistics
+import stat
 import subprocess
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
@@ -32,9 +34,22 @@ app = FastAPI(title=APP_TITLE)
 templates = Jinja2Templates(directory="templates")
 
 
+def _handle_remove_readonly(func, path, exc_info):
+    try:
+        os.chmod(path, stat.S_IWRITE)
+        func(path)
+    except Exception:
+        raise
+
+
 def clean_clone_dir(target: Path) -> None:
     if target.exists():
-        shutil.rmtree(target, ignore_errors=True)
+        try:
+            shutil.rmtree(target, onerror=_handle_remove_readonly)
+        except Exception as exc:  # pragma: no cover - safeguarding cleanup
+            raise HTTPException(status_code=500, detail=f"Failed to clean clone directory: {exc}") from exc
+        if target.exists():
+            raise HTTPException(status_code=500, detail="Unable to clean existing clone directory.")
     target.parent.mkdir(parents=True, exist_ok=True)
 
 
@@ -143,9 +158,10 @@ def analyze_file(path: Path) -> Dict[str, Any]:
                 "lint_warnings": 0,
                 "lint_warnings_per_100_loc": 0.0,
                 "comment_density": 0.0,
+                "type_hint_coverage": 0.0,
                 "function_count": 0,
                 "avg_function_length": 0.0,
-                "type_hint_coverage": 0.0,
+                "total_functions": 0,
                 "loc": 0,
             }
         )
