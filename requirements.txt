@@ -1,0 +1,7 @@
+fastapi
+uvicorn
+gitpython
+radon
+pylint
+jinja2
+pip-audit

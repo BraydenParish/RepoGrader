@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>RepoGrader Pro (Lite)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 2rem auto;
+            max-width: 900px;
+            color: #1f2933;
+            background-color: #f9fafc;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        form {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        input[type="url"] {
+            flex: 1;
+            padding: 0.75rem;
+            border-radius: 4px;
+            border: 1px solid #cbd2d9;
+        }
+        button {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background-color: #2563eb;
+            color: white;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #1d4ed8;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5rem;
+            background: white;
+        }
+        th, td {
+            padding: 0.75rem;
+            border-bottom: 1px solid #d9e2ec;
+            text-align: left;
+        }
+        th {
+            background-color: #f0f4f8;
+        }
+        .grade {
+            font-weight: bold;
+            text-align: center;
+            border-radius: 4px;
+            padding: 0.35rem 0.5rem;
+            display: inline-block;
+            min-width: 2.5rem;
+        }
+        .grade-A { background-color: #c6f6d5; color: #22543d; }
+        .grade-B { background-color: #fefcbf; color: #744210; }
+        .grade-C { background-color: #feebc8; color: #7b341e; }
+        .grade-D { background-color: #fbd38d; color: #7b341e; }
+        .grade-F { background-color: #fed7d7; color: #742a2a; }
+        .summary {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            border: 1px solid #d9e2ec;
+        }
+        .summary strong {
+            display: block;
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .vulnerabilities {
+            margin-top: 1rem;
+            padding: 1rem;
+            border-radius: 6px;
+            border: 1px solid #facc15;
+            background-color: #fef3c7;
+        }
+        .placeholder {
+            text-align: center;
+            padding: 3rem;
+            color: #52606d;
+        }
+    </style>
+</head>
+<body>
+    <h1>RepoGrader Pro (Lite)</h1>
+    <form action="/analyze" method="post">
+        <input type="url" name="repo_url" placeholder="https://github.com/user/repository" required>
+        <button type="submit">Analyze</button>
+    </form>
+
+    {% if results %}
+        <section class="summary">
+            <strong>Overall Grade: <span class="grade grade-{{ results.repo_grade }}">{{ results.repo_grade }}</span></strong>
+            <div>Score: {{ results.repo_score }}</div>
+            <div>Repository: <a href="{{ results.repo_url }}" target="_blank" rel="noopener">{{ results.repo_url }}</a></div>
+            {% if results.vulnerabilities %}
+                <div class="vulnerabilities">
+                    <strong>Dependency Audit</strong>
+                    <div>{{ results.vulnerabilities.count }} vulnerabilities detected.
+                        {% if results.vulnerabilities.count == 0 %}
+                            All clear!
+                        {% else %}
+                            Review the JSON results in the API response for details.
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>File</th>
+                    <th>Grade</th>
+                    <th>Reason</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file, data in results.files.items() %}
+                    <tr>
+                        <td>{{ file }}</td>
+                        <td><span class="grade grade-{{ data.grade }}">{{ data.grade }}</span></td>
+                        <td>{{ data.reason }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="placeholder">
+            Paste a public GitHub repository URL to receive file-by-file quality grades in under two minutes.
+        </div>
+    {% endif %}
+</body>
+</html>
