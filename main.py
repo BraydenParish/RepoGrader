@@ -14,7 +14,11 @@ from fastapi.templating import Jinja2Templates
 from git import Repo
 from git.exc import GitCommandError
 from pylint.lint import Run as PylintRun
-from pylint.reporters.collecting import CollectingReporter
+
+try:  # Pylint <= 2.17
+    from pylint.reporters.collecting import CollectingReporter
+except ModuleNotFoundError:  # Pylint >= 3.0
+    from pylint.reporters.collecting_reporter import CollectingReporter
 from radon.complexity import cc_visit
 from radon.metrics import mi_visit
 import tokenize
