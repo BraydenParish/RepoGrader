@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CQReport",
+  "type": "object",
+  "required": ["meta", "project", "files"],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "required": ["generated_at", "cq_version", "tools"],
+      "properties": {
+        "generated_at": {"type": "string", "format": "date-time"},
+        "cq_version": {"type": "string"},
+        "tools": {
+          "type": "object",
+          "properties": {
+            "python": {"type": "string"},
+            "pylint": {"type": "string", "nullable": true},
+            "mypy": {"type": "string", "nullable": true}
+          }
+        }
+      }
+    },
+    "project": {
+      "type": "object",
+      "required": ["path", "weights", "role_weights", "summary", "confidence"],
+      "properties": {
+        "path": {"type": "string"},
+        "weights": {"type": "object"},
+        "role_weights": {"type": "object"},
+        "summary": {
+          "type": "object",
+          "required": ["duplication", "lint", "typing", "complexity", "grade"],
+          "properties": {
+            "duplication": {"type": "number", "minimum": 0},
+            "lint": {"type": "number", "minimum": 0, "maximum": 100},
+            "typing": {"type": "number", "minimum": 0, "maximum": 100},
+            "complexity": {"type": "number", "minimum": 0, "maximum": 100},
+            "grade": {"type": "number", "minimum": 0, "maximum": 100}
+          }
+        },
+        "confidence": {
+          "type": "object",
+          "required": ["per_metric", "intervals", "degraded"],
+          "properties": {
+            "per_metric": {
+              "type": "object",
+              "properties": {
+                "duplication": {"type": "number"},
+                "lint": {"type": "number"},
+                "typing": {"type": "number"},
+                "complexity": {"type": "number"}
+              }
+            },
+            "intervals": {
+              "type": "object",
+              "properties": {
+                "grade": {
+                  "type": "array",
+                  "items": {"type": "number"},
+                  "minItems": 2,
+                  "maxItems": 2
+                }
+              }
+            },
+            "degraded": {"type": "array", "items": {"type": "string"}}
+          }
+        },
+        "architecture": {
+          "type": "object",
+          "properties": {
+            "violations": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "file": {"type": "string"},
+                  "from_layer": {"type": "string"},
+                  "to_layer": {"type": "string"},
+                  "import": {"type": "string"}
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "loc", "role", "metrics", "grade", "confidence"],
+        "properties": {
+          "path": {"type": "string"},
+          "loc": {"type": "integer", "minimum": 0},
+          "role": {
+            "type": "string",
+            "enum": ["default", "test", "config", "vendor", "generated"]
+          },
+          "metrics": {
+            "type": "object",
+            "required": ["duplication_ratio", "lint", "typing", "complexity"],
+            "properties": {
+              "duplication_ratio": {"type": "number", "minimum": 0, "maximum": 1},
+              "lint": {
+                "type": "object",
+                "properties": {
+                  "C": {"type": "integer"},
+                  "W": {"type": "integer"},
+                  "R": {"type": "integer"},
+                  "E": {"type": "integer"},
+                  "weighted_score": {"type": "number", "minimum": 0, "maximum": 100}
+                }
+              },
+              "typing": {
+                "type": "object",
+                "properties": {
+                  "mypy_errors": {"type": "integer"},
+                  "annotation_coverage": {"type": "number", "minimum": 0, "maximum": 1},
+                  "score": {"type": "number", "minimum": 0, "maximum": 100}
+                }
+              },
+              "complexity": {
+                "type": "object",
+                "properties": {
+                  "cognitive": {"type": "integer", "minimum": 0},
+                  "per_loc": {"type": "number", "minimum": 0},
+                  "score": {"type": "number", "minimum": 0, "maximum": 100}
+                }
+              }
+            }
+          },
+          "grade": {"type": "number", "minimum": 0, "maximum": 100},
+          "confidence": {
+            "type": "object",
+            "properties": {
+              "duplication": {"type": "number"},
+              "lint": {"type": "number"},
+              "typing": {"type": "number"},
+              "complexity": {"type": "number"},
+              "overall": {"type": "number"}
+            }
+          },
+          "missing_reasons": {
+            "type": "array",
+            "items": {"type": "string"}
+          }
+        }
+      }
+    }
+  }
+}
